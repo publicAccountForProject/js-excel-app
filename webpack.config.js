@@ -1,5 +1,5 @@
 const path = require('path')
-const {CleanWebpackPlugin} = require('clean-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
 const CopyPlugin = require('copy-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
@@ -29,18 +29,18 @@ const jsLoaders = () => {
 module.exports = {
   context: path.resolve(__dirname, 'src'),
   mode: 'development',
-  entry: ['@babel/polyfill', './index.js'],
+  entry: './index.js',
   output: {
-    filename: filename('js'),
+    filename:  filename('js'),
     path: path.resolve(__dirname, 'dist')
   },
   resolve: {
-    extensions: ['.js'],
-    alias: {
-      '@': path.resolve(__dirname, 'src'),
-      '@core': path.resolve(__dirname, 'src/core')
-    }
-  },
+      extensions: ['.js'],
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+        '@core': path.resolve(__dirname, 'src/core')
+      }
+    },
   devtool: isDev ? 'source-map' : false,
   devServer: {
     port: 3000,
@@ -52,40 +52,53 @@ module.exports = {
       template: 'index.html',
       minify: {
         removeComments: isProd,
-        collapseWhitespace: isProd
+        conservativeCollapse: isProd
       }
     }),
-    new CopyPlugin([
-      {
-        from: path.resolve(__dirname, 'src/favicon.ico'),
-        to: path.resolve(__dirname, 'dist')
-      }
-    ]),
+    new CopyPlugin({
+      patterns: [
+        {
+          from: path.resolve(__dirname, 'src/favicon.ico'),
+          to: path.resolve(__dirname, 'dist')
+        }
+      ]
+    }),
+    
     new MiniCssExtractPlugin({
-      filename: filename('css')
+      filename:  filename('css')
     })
   ],
   module: {
-    rules: [
-      {
-        test: /\.s[ac]ss$/i,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
+      rules: [
+        {
+          test: /\.s[ac]ss$/i,
+          use: [
+            {
+              loader: MiniCssExtractPlugin.loader,
+              
+            },
+            'css-loader',
+            'sass-loader'
+          ],
+        }
+        ,
+        {
+          test: /\.(?:js|mjs|cjs)$/,
+          exclude: /node_modules/,
+          use:   jsLoaders() 
+          /*{
+            loader: 'babel-loader',
             options: {
-              hmr: isDev,
-              reloadAll: true
+              targets: "defaults",
+              presets: [
+                ['@babel/preset-env']
+              ],
+              plugins: [
+                ['@babel/plugin-proposal-decorators', { version: "2023-11", decoratorsBeforeExport: true }]
+              ]
             }
-          },
-          'css-loader',
-          'sass-loader'
-        ],
-      },
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: jsLoaders()
-      }
-    ]
-  }
+          }*/
+        }
+      ]
+    }  
 }
